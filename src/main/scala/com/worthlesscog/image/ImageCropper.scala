@@ -71,7 +71,7 @@ class ImageCropper extends Application {
         warning("Oops!", description, cause).showAndWait
 
     def confirmDelete(f: File) =
-        confirmation("Confirm File Delete", null, s"OK to delete $f ?").showAndWait.get == ButtonType.OK
+        confirmation("Confirm File Delete", null, s"OK to delete ${f.getName} ?").showAndWait.get == ButtonType.OK
 
     def dimensions[T <: Dimensioned](d: T) =
         (d.getWidth + 0.5).toInt + " x " + (d.getHeight + 0.5).toInt
