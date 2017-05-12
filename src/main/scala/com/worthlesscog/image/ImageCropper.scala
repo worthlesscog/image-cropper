@@ -142,8 +142,7 @@ class ImageCropper extends Application {
         Option(f) |> selectFile(stage, SAVE) foreach { f =>
             val s = view.snapshot(plainSnapshot, null)
             val (w, h) = targetSize
-            SwingFXUtils.fromFXImage(s, null) |> scaleSmooth(w, h) |> saveJpg(f, progressive.isSelected, quality.getValue.toFloat)
-            updateLabel(status, Color.BLACK, "Saved")
+            backgroundTask(save(s, w, h, f, progressive.isSelected, quality.getValue.toFloat))
         }
     }
 
@@ -162,6 +161,10 @@ class ImageCropper extends Application {
 
     def rightClick(e: MouseEvent) =
         e.getClickCount == 1 && e.getButton == MouseButton.SECONDARY
+
+    def save(i: Image, w: Int, h: Int, f: File, progressive: Boolean, quality: Float) =
+        // XXX - safety this up in case it fails
+        SwingFXUtils.fromFXImage(i, null) |> scaleSmooth(w, h) |> saveJpg(f, progressive, quality)
 
     def scrolling(e: ScrollEvent) = {
         val i = view.getImage

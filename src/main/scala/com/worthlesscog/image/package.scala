@@ -4,6 +4,7 @@ import java.awt.Image
 import java.awt.image.BufferedImage
 import java.io.{ File, FileOutputStream }
 
+import javafx.concurrent.Task
 import javafx.event.{ Event, EventHandler }
 import javafx.geometry.{ HPos, Insets, Orientation, Rectangle2D }
 import javafx.scene.SnapshotParameters
@@ -101,6 +102,13 @@ package object image {
     }
 
     // ----------
+
+    def backgroundTask[T](f: => T) = {
+        val t = new Task[T] {
+            def call = f
+        }
+        new Thread(t).start
+    }
 
     def fos(f: File) =
         new FileOutputStream(f)
