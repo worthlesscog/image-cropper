@@ -70,8 +70,11 @@ class ImageCropper extends Application {
     def alert(description: String, cause: String) =
         warning("Oops!", description, cause).showAndWait
 
-    def confirmDelete(f: File) =
-        confirmation("Confirm File Delete", null, s"OK to delete ${f.getName} ?").showAndWait.get == ButtonType.OK
+    def confirmDelete(stage: Stage, f: File) = {
+        val c = confirmation("Confirm File Delete", null, s"OK to delete ${f.getName} ?")
+        c.initOwner(stage)
+        c.showAndWait.get == ButtonType.OK
+    }
 
     def dimensions[T <: Dimensioned](d: T) =
         (d.getWidth + 0.5).toInt + " x " + (d.getHeight + 0.5).toInt
@@ -96,7 +99,7 @@ class ImageCropper extends Application {
     def keyboard(stage: Stage)(e: KeyEvent) =
         e.getCode match {
             case KeyCode.DELETE =>
-                if (imageLoaded && confirmDelete(file.get)) {
+                if (imageLoaded && confirmDelete(stage, file.get)) {
                     file.get.delete
                     updateLabel(status, Color.BLACK, "Deleted")
                 }
