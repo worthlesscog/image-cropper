@@ -8,12 +8,14 @@ import javafx.concurrent.Task
 import javafx.event.{ Event, EventHandler }
 import javafx.geometry.{ HPos, Insets, Orientation, Rectangle2D }
 import javafx.scene.SnapshotParameters
-import javafx.scene.control.{ CheckBox, Control, Slider, Tooltip }
+import javafx.scene.control.{ CheckBox, Control, Label, Slider, Tooltip }
 import javafx.scene.control.Alert
 import javafx.scene.control.Alert.AlertType
-import javafx.scene.layout.{ ColumnConstraints, GridPane }
+import javafx.scene.image.ImageView
+import javafx.scene.layout.{ BorderPane, ColumnConstraints, GridPane, Priority }
 import javafx.stage.FileChooser.ExtensionFilter
 import javax.imageio.{ IIOImage, ImageIO, ImageWriteParam, ImageWriter }
+import javafx.stage.FileChooser
 
 package object image {
 
@@ -36,18 +38,44 @@ package object image {
         a
     }
 
+    def borderPane =
+        new BorderPane
+
     def checkBox(tip: String) =
         new CheckBox |> withTooltip(tip)
 
-    def col(percentWidth: Double) = {
-        val c = new ColumnConstraints
+    def col =
+        new ColumnConstraints
+
+    def colCentred = {
+        val c = col
         c.setHalignment(HPos.CENTER)
+        c
+    }
+
+    def colGrow = {
+        val c = colCentred
+        c.setHgrow(Priority.ALWAYS)
+        c
+    }
+
+    def colPercent(percentWidth: Double) = {
+        val c = colCentred
         c.setPercentWidth(percentWidth)
         c
     }
 
     def confirmation(title: String, header: String, content: String) =
         alert(AlertType.CONFIRMATION, title, header, content)
+
+    def emptyLabel =
+        new Label
+
+    def imageChooser = {
+        val c = new FileChooser
+        c.getExtensionFilters.add(imageFilter)
+        c
+    }
 
     def insetGridPane = {
         val g = new GridPane
@@ -75,6 +103,9 @@ package object image {
     def imageFilter =
         new ExtensionFilter("Image files", "*.BMP", "*.JPEG", "*.JPG", "*.PNG", "*.bmp", "*.jpeg", "*.jpg", "*.png")
 
+    def label(tip: String)(text: String) =
+        new Label(text) |> withTooltip(tip)
+
     def plainSnapshot =
         new SnapshotParameters
 
@@ -92,6 +123,12 @@ package object image {
 
     def tooltip(s: String) =
         new Tooltip(s)
+
+    def trueAspectView = {
+        val v = new ImageView
+        v.setPreserveRatio(true)
+        v
+    }
 
     def warning(title: String, header: String, content: String) =
         alert(AlertType.WARNING, title, header, content)

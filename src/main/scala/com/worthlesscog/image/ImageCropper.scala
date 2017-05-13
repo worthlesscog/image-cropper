@@ -9,9 +9,8 @@ import javafx.beans.property.SimpleObjectProperty
 import javafx.embed.swing.SwingFXUtils
 import javafx.scene.Scene
 import javafx.scene.control.{ ButtonType, Label }
-import javafx.scene.image.{ Image, ImageView }
+import javafx.scene.image.Image
 import javafx.scene.input.{ KeyCode, KeyEvent, MouseButton, MouseEvent, ScrollEvent }
-import javafx.scene.layout.BorderPane
 import javafx.scene.paint.Color
 import javafx.stage.{ FileChooser, Screen, Stage }
 
@@ -32,15 +31,15 @@ class ImageCropper extends Application {
     val xy = new SimpleObjectProperty[XY]
 
     val bounds = Screen.getPrimary.getBounds
-    val info = new Label("No Image")
-    val progressive = selectedCheckBox("Progressive JPEG")
-    val quality = horizontalSlider("JPEG Quality", 50, 99, 90, 1)
-    val status = new Label("-")
-    val target = new Label(dimensions(bounds))
-    val view = new ImageView
+    val filler = emptyLabel
+    val progressive = selectedCheckBox("Progressive")
+    val quality = horizontalSlider("Quality", 50, 99, 90, 1)
+    val scaling = label("View")("-")
+    val source = label("Source")("-")
+    val target = dimensions(bounds) |> label("Target")
+    val view = trueAspectView
 
     def start(stage: Stage) {
-        view.setPreserveRatio(true)
         view.setFitWidth((bounds.getWidth * 2) / 3)
         view.setFitHeight((bounds.getHeight * 2) / 3)
         handlerFor(dragMouse) |> view.setOnMouseDragged
@@ -48,14 +47,10 @@ class ImageCropper extends Application {
         handlerFor(scrolling) |> view.setOnScroll
 
         val grid = insetGridPane
-        grid.add(info, 0, 0)
-        grid.add(quality, 1, 0)
-        grid.add(progressive, 2, 0)
-        grid.add(target, 3, 0)
-        grid.add(status, 4, 0)
-        grid.getColumnConstraints.addAll(col(50), col(20), col(5), col(5), col(20))
+        grid.addRow(0, target, source, scaling, filler, quality, progressive)
+        grid.getColumnConstraints.addAll(colPercent(5), colPercent(5), colPercent(5), colGrow, colPercent(15), colPercent(5))
 
-        val pane = new BorderPane
+        val pane = borderPane
         pane.setCenter(view)
         pane.setBottom(grid)
         handlerFor(keyboard(stage)) |> pane.setOnKeyPressed
@@ -71,7 +66,7 @@ class ImageCropper extends Application {
         warning("Oops!", description, cause).showAndWait
 
     def confirmDelete(stage: Stage, f: File) = {
-        val c = confirmation("Confirm File Delete", null, s"OK to delete ${f.getName} ?")
+        val c = confirmation("Confirm File Delete", null, "OK to delete " + f.getName + " ?")
         c.initOwner(stage)
         c.showAndWait.get == ButtonType.OK
     }
@@ -101,7 +96,7 @@ class ImageCropper extends Application {
             case KeyCode.DELETE =>
                 if (imageLoaded && confirmDelete(stage, file.get)) {
                     file.get.delete
-                    updateLabel(status, Color.BLACK, "Deleted")
+                    updateLabel(source, Color.BLACK)("Deleted")
                 }
 
             case KeyCode.ENTER =>
@@ -130,10 +125,11 @@ class ImageCropper extends Application {
             if (i.isError)
                 alert("Can't read " + f.getPath, i.getException.toString)
             else {
-                f.toString + ", " + dimensions(i) |> info.setText
+                stage.setTitle(f.getName)
+                updateDimensions(source, i)
                 view.setImage(i)
                 initialZoom(i, view.getFitWidth, view.getFitHeight) |> view.setViewport
-                updateStatus
+                updateScaling
             }
         }
 
@@ -179,17 +175,18 @@ class ImageCropper extends Application {
         val z = math.pow(base, -e.getDeltaY) min max max min
         rect(0, 0, z * vW, z * vH) |> view.setViewport
 
-        updateStatus
+        updateScaling
     }
 
     def selectFile(s: Stage, load: Boolean)(file: Option[File]) = {
-        val fc = new FileChooser
-        fc.getExtensionFilters.add(imageFilter)
+        val c = imageChooser
         file foreach { f =>
-            fc.setInitialDirectory(f.getParentFile)
-            fc.setInitialFileName(f.getName)
+            if (f.getParentFile.exists) {
+                c.setInitialDirectory(f.getParentFile)
+                c.setInitialFileName(f.getName)
+            }
         }
-        val f = if (load) fc.showOpenDialog(s) else fc.showSaveDialog(s)
+        val f = if (load) c.showOpenDialog(s) else c.showSaveDialog(s)
         f match {
             case null =>
                 None
@@ -202,15 +199,17 @@ class ImageCropper extends Application {
     def targetSize =
         (bounds.getWidth.toInt, bounds.getHeight.toInt)
 
-    def updateStatus = {
-        val vp = view.getViewport
-        val (vW, vH) = ((vp.getWidth + 0.5).toInt, (vp.getHeight + 0.5).toInt)
+    def updateDimensions(l: Label, d: Dimensioned) = {
+        val (dW, dH) = ((d.getWidth + 0.5).toInt, (d.getHeight + 0.5).toInt)
         val (tW, tH) = targetSize
-        val (colour, dir) = if (vW < tW || vH < tH) (Color.RED, "up") else (Color.GREEN, "down")
-        updateLabel(status, colour, dimensions(vp) + ", scale " + dir)
+        val colour = if (dW < tW || dH < tH) Color.RED else Color.GREEN
+        dimensions(d) |> updateLabel(l, colour)
     }
 
-    def updateLabel(l: Label, c: Color, s: String) = {
+    def updateScaling =
+        updateDimensions(scaling, view.getViewport)
+
+    def updateLabel(l: Label, c: Color)(s: String) = {
         l.setTextFill(c)
         l.setText(s)
     }
