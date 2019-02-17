@@ -2,17 +2,15 @@ package com.worthlesscog.image
 
 import java.io.File
 
-import scala.language.reflectiveCalls
-
 import javafx.application.Application
 import javafx.beans.property.SimpleObjectProperty
 import javafx.embed.swing.SwingFXUtils
 import javafx.scene.Scene
-import javafx.scene.control.{ ButtonType, Label }
+import javafx.scene.control.{ButtonType, Label}
 import javafx.scene.image.Image
-import javafx.scene.input.{ KeyCode, KeyEvent, MouseButton, MouseEvent, ScrollEvent }
+import javafx.scene.input.{KeyCode, KeyEvent, MouseButton, MouseEvent, ScrollEvent}
 import javafx.scene.paint.Color
-import javafx.stage.{ FileChooser, Screen, Stage }
+import javafx.stage.{Screen, Stage}
 
 case class XY(x: Double, y: Double) {
     def -(xy: XY) = XY(x - xy.x, y - xy.y)
@@ -216,7 +214,7 @@ class ImageCropper extends Application {
 
 }
 
-object ImageCropper {
+object Launcher {
 
     def main(args: Array[String]) =
         Application.launch(classOf[ImageCropper], args: _*)
