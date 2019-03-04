@@ -15,7 +15,8 @@ lazy val osName = System.getProperty("os.name") match {
     case _                            => throw new Exception("Unknown platform!")
 }
 
-lazy val javaFXModules = Seq("base", "controls", "fxml", "graphics", "media", "swing", "web")
+//                           "base", "controls", "fxml", "graphics", "media", "swing", "web")
+lazy val javaFXModules = Seq("base", "controls", "graphics", "swing")
 libraryDependencies ++= javaFXModules.map(m =>
     "org.openjfx" % s"javafx-$m" % "11" classifier osName
 )
